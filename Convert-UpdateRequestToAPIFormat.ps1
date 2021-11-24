@@ -6,22 +6,18 @@
 # Copyright: WhiteSource Software 2021 (c)                        #
 ###################################################################
 
-param(
-    [string]$path = $(Get-Location).Path
-)
-
-if($args[0] -eq "--help") {
-    Write-Host "Usage:
-    Convert-UpdateRequestToAPIFormat --help`t(Print this help message)
-    Convert-UpdateRequestToAPIFormat -path <C:\Path\To\Your\Project>"
-}
-
 function Get-UpdateRequest {
     param (
         [string]$path
     )
-
-    $updateRequestContent = Get-Content -Path "$path/whitesource/update-request.txt"
+    
+    try {
+        $updateRequestContent = Get-Content -Path "$path/whitesource/update-request.txt" -ErrorAction Stop
+    } 
+    catch {
+        Write-Host -ForegroundColor DarkRed "Could not find the update request in the project given: $path"
+        exit 1
+    }
 
     $updateRequestObj = $($updateRequestContent | ConvertFrom-Json)
 
@@ -51,6 +47,22 @@ function Convert-UpdateRequest {
 &diff=$($projects)"
 
     return $updateRequestConverted
+}
+
+switch($args[0]) {
+    '' {
+        $path = $(Get-Location).Path
+    }
+    '-path' {
+        $path = $args[1]
+    }
+    default {
+        Write-Host "Usage:
+        Convert-UpdateRequestToAPIFormat --help`t`t`t`t`t(Print this help message)
+        Convert-UpdateRequestToAPIFormat`t`t`t`t`t(Executes on your current directory)
+        Convert-UpdateRequestToAPIFormat -path `"<C:\Path\To\Your\Project>`"`t(Executes on the project given. Do not include whitesource directory in path)"
+        exit 1
+    }
 }
 
 [PSObject]$updateRequest = Get-UpdateRequest -path $path
