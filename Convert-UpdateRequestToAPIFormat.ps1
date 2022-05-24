@@ -29,7 +29,7 @@ function Convert-UpdateRequest {
         [PSObject]$updateRequest
     )
 
-    $projects = $updateRequest.projects | ConvertTo-Json
+    $projects = $updateRequest.projects | ConvertTo-Json -Depth 3
     if(!($projects.StartsWith('['))) {
         $projects = "[`n" + $projects + "`n]"
     }
